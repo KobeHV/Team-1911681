@@ -1,0 +1,104 @@
+function [Peo_pos0_n, Peo_M0n, Pos_start0n]=Choice_V0(M_0,Pos_start0,Peo_pos0,N_in0)
+global Num_per0 N_in_ant0 N_num_ant0 V0 Stop_t0 Pos_save0
+Pos_start0n=Pos_start0;
+Peo_M0n=M_0*0;
+dt=0.1;
+Peo_pos0_n=Peo_pos0;
+i=1;
+while i<=Num_per0
+S=zeros(1,8);
+[~,q]=min(sum(abs(Pos_start0(i,:)'-N_in0),1));
+% a_ant=Fcn(Peo_pos0(i,:),q);
+Peo_pos0=round(Peo_pos0);
+a_d=Density(M_0,round(Peo_pos0(i,:)));
+a_info=Info_ant(q,Peo_pos0(i,:));
+a_dir=(Pos_start0(i,:)-Peo_pos0(i,:))/norm((Pos_start0(i,:)-Peo_pos0(i,:)));
+a=a_dir+a_d+a_info;
+V0(i,:)=V0(i,:)+a*dt;
+if norm(V0(i,:))>4
+    V0(i,:)=V0(i,:)/norm(V0(i,:))*4;
+end
+dist=V0(i,:)*(dt+Stop_t0(i));
+Vs=[1 0
+    sqrt(2)/2 sqrt(2)/2
+    0 1
+    -sqrt(2)/2 sqrt(2)/2
+    -1 0
+    -sqrt(2)/2 -sqrt(2)/2
+    0 -1
+    sqrt(2)/2 -sqrt(2)/2];
+Vb=[2 0
+    2 1
+    2 2
+    1 2
+    0 2
+    -1 2
+    -2 2
+    -2 1
+    -2 0
+    -2 -1
+    -2 -2
+    -1 -2
+    0 -2
+    1 -2
+    2 -2
+    2 -1];
+if norm(dist)<0.8
+    for j=1:1:8
+        S(j)=Vs(j,:)*dist'/norm(dist);
+    end
+    S=[S;1:8];
+    S=sortrows(S',1);
+    Sa=S(8:-1:1,2);
+else
+    for j=1:1:16
+        S(j)=Vb(j,:)/norm(Vb(j,:))*dist'/norm(dist);
+    end
+    S=[S;1:16];
+    S=sortrows(S',1);
+    Sa=S(16:-1:1,2);
+end
+for j=1:1:9
+    if j<9
+        [Peo_pos0_n(i,:), niu]=Choice_point(Peo_pos0(i,:),Sa(j),dist);
+    else
+        Peo_pos0_n(i,:)=Peo_pos0(i,:);
+        niu=0;
+    end
+    p2=2*(Peo_pos0_n(i,:)-Peo_pos0(i,:))+Peo_pos0(i,:);
+    p3=3*(Peo_pos0_n(i,:)-Peo_pos0(i,:))+Peo_pos0(i,:);
+    p4=4*(Peo_pos0_n(i,:)-Peo_pos0(i,:))+Peo_pos0(i,:);
+    if M_0(Peo_pos0_n(i,1),Peo_pos0_n(i,2))==1 && M_0(p2(1),p2(2))==1 && M_0(p3(1),p3(2))==1 && M_0(p4(1),p4(2))==1
+        if niu==0
+            Stop_tn(i)=Stop_t0(i)+dt;
+        else
+            Stop_tn(i)=0;
+        end
+        Peo_M0n(Peo_pos0_n(i,1),Peo_pos0_n(i,2))=1;
+        break;
+    end
+end
+Pos_save0(i).pos=[Peo_pos0(i,:);Pos_save0(i).pos];
+W=N_in0'-Peo_pos0_n(i,:);
+[p,~]=min(sqrt(W(:,1).^2+W(:,2).^2));
+if p<60
+    Peo_M0n(Peo_pos0_n(i,1),Peo_pos0_n(i,2))=0;
+    N_num_ant0(q)=N_num_ant0(q)+1;
+    A=Pos_save0(i).pos;
+    N_in_ant0(q,N_num_ant0(q)).roadmat=A;
+    M_ant_upd0(q,A)
+    
+    Peo_pos0_n(i,:)=[];
+    Pos_start0n(i,:)=[];
+    Pos_save0(i)=[];
+    
+    Pos_start0(i,:)=[];
+    Peo_pos0(i,:)=[];
+    V0(i,:)=[];
+    Stop_t0(i)=[];
+    Num_per0=Num_per0-1;
+    i=i-1;
+end
+i=i+1;
+end
+end

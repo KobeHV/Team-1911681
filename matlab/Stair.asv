@@ -1,0 +1,32 @@
+function Stair(q)
+global Num_stair Num_sq2 Num_sq1
+global Pos_stair M_stair
+global M_ant0
+global Peo_pos0 Peo_M0 Num_per0 N_in0 N_in Pos_start0
+i=1;
+[~,b]=size(N_in0);
+while i<=Num_stair(q)
+    Pos_stair(q).num(i,:)=Pos_stair(q).num(i,:)+[0 1];
+    M_stair=circshift(M_stair,1);
+    M_stair(:,1)=0;
+    Num_sq2=sum(sum(M_stair(:,1:5)));
+    Num_sq1=
+    if Pos_stair(q).num(i,2)>32
+        Num_per0=Num_per0+1;
+        Peo_pos0(Num_per0,:)=N_in(:,q)';
+        
+        for j=1:1:b
+            if norm([N_in(1,q) N_in(2,q) 4*N_in(1,q)]-[N_in0(:,j)' 4*N_in0(1,j)])<Dist
+                Pos_final=N_in0(:,j);
+                Dist=norm([N_in(1,q) N_in(2,q) 4*N_in(1,q)]-[N_in0(:,j)' 4*N_in0(1,j)]);
+            end
+        end
+        Pos_start0(Num_per0,:)=Pos_final';
+        
+        Pos_stair(q).num=[];
+        Num_stair(q)=Num_stair(q)-1;
+        i=i-1;
+    end
+    i=i+1
+end
+end
